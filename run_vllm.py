@@ -112,12 +112,14 @@ def load_model(model_name: str, use_vllm=False):
                 model_name,
                 device_map="auto",
                 torch_dtype=torch.bfloat16,
+                trust_remote_code=True,
             )
         except Exception:
             model = AutoModelForCausalLM.from_pretrained(
                 model_name,
                 device_map="auto",
                 torch_dtype=torch.bfloat16,
+                trust_remote_code=True,
             )
         processor = AutoProcessor.from_pretrained(model_name)
         return model, processor
