@@ -1,0 +1,14 @@
+torch
+torchvision
+transformers
+qwen_vl_utils
+peft
+pillow
+omegaconf
+opencv-python
+evaluate
+scikit-learn
+spacy
+torchmetrics
+
+# python3 -m spacy download en_core_web_sm
