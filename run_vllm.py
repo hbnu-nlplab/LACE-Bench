@@ -270,6 +270,16 @@ def main():
     else:
         formatted = [format_data(data['caption'], data['image'], PROMPT) for data in vl_lst]
 
+
+    # check null candidate
+    new_formatted, new_candidates = [], []
+    for cand, ed in tqdm(zip(candidates, formatted), total=len(formatted)):
+        if cand != []:
+            new_formatted.append(ed)
+            new_candidates.append(cand)
+    formatted = new_formatted
+    candidates = new_candidates
+
     formatted_batches = [formatted[i:i+BATCH_SIZE] for i in range(0, len(formatted), BATCH_SIZE)]
 
     all_gen = []
