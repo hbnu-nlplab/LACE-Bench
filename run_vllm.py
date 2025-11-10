@@ -46,7 +46,9 @@ if KCC:
 
 # ----------------------------------------------------
 
-def format_data(caption, image, prompt=PROMPT, processor=None):
+def format_data(data, prompt=PROMPT, processor=None, model_name=MODEL_NAME):
+    caption, image, image_path = data['caption'], data['image'], data['image_path']
+
     if hasattr(processor, "apply_chat_template"):
         return [
             {
@@ -71,8 +73,16 @@ def format_data(caption, image, prompt=PROMPT, processor=None):
                 "content": [{"type": "text", "text": caption}],
             },
         ]
+    elif "deepseek" in model_name.lower():
+        return [{
+                "role": "<|User|>",
+                "content": f"<image>\n{prompt}",
+                "images": [image_path] if isinstance(image_path, str) else [None],
+            },
+            {"role": "<|Assistant|>", "content": caption},
+        ]
     else:
-        formatted = {"text": prompt, "image": image}
+        return {"text": prompt, "image": image}
 
 def transform_images(image_file, bbox_lst, type="blur"):
     image = Image.open(image_file).convert("RGB")
@@ -253,7 +263,7 @@ def main():
     vl_lst = []
     crop_img_lst = []
     for c, ip, bb, pp in tqdm(zip(eval_data["caption"], eval_data["image_path"], eval_data["bounding_box"], eval_data["prompt"]), total=len(eval_data["caption"])):
-        vl_lst.append({"image": transform_images(ip, bb), "caption": c, "prompt": pp})
+        vl_lst.append({"image": transform_images(ip, bb), "caption": c, "prompt": pp, "image_path": ip})
         crop_img_lst.append(transform_images(ip, bb, "crop"))
 
     if QUAL_ANAL:
@@ -269,9 +279,9 @@ def main():
             img_id2 = el.split('/')[-1].split('.')[0]
 
     if KNOWLEDGE_EDIT:
-        formatted = [format_data(data['caption'], data['image'], data['prompt'], processor) for data in vl_lst]
+        formatted = [format_data(data, data['prompt'], processor, MODEL_NAME) for data in vl_lst]
     else:
-        formatted = [format_data(data['caption'], data['image'], PROMPT, processor) for data in vl_lst]
+        formatted = [format_data(data, PROMPT, processor, MODEL_NAME) for data in vl_lst]
 
 
     # check null candidate
