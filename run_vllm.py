@@ -46,30 +46,33 @@ if KCC:
 
 # ----------------------------------------------------
 
-def format_data(caption, image, prompt=PROMPT):
-    return [
-        {
-            "role": "system",
-            "content": [{"type": "text", "text": system_message}],
-        },
-        {
-            "role": "user",
-            "content": [
-                {
-                    "type": "image",
-                    "image": image,
-                },
-                {
-                    "type": "text",
-                    "text": prompt,
-                },
-            ],
-        },
-        {
-            "role": "assistant",
-            "content": [{"type": "text", "text": caption}],
-        },
-    ]
+def format_data(caption, image, prompt=PROMPT, processor=None):
+    if hasattr(processor, "apply_chat_template"):
+        return [
+            {
+                "role": "system",
+                "content": [{"type": "text", "text": system_message}],
+            },
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image",
+                        "image": image,
+                    },
+                    {
+                        "type": "text",
+                        "text": prompt,
+                    },
+                ],
+            },
+            {
+                "role": "assistant",
+                "content": [{"type": "text", "text": caption}],
+            },
+        ]
+    else:
+        formatted = {"text": prompt, "image": image}
 
 def transform_images(image_file, bbox_lst, type="blur"):
     image = Image.open(image_file).convert("RGB")
@@ -266,9 +269,9 @@ def main():
             img_id2 = el.split('/')[-1].split('.')[0]
 
     if KNOWLEDGE_EDIT:
-        formatted = [format_data(data['caption'], data['image'], data['prompt']) for data in vl_lst]
+        formatted = [format_data(data['caption'], data['image'], data['prompt'], processor) for data in vl_lst]
     else:
-        formatted = [format_data(data['caption'], data['image'], PROMPT) for data in vl_lst]
+        formatted = [format_data(data['caption'], data['image'], PROMPT, processor) for data in vl_lst]
 
 
     # check null candidate
