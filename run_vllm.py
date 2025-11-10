@@ -8,7 +8,7 @@ from qwen_vl_utils import process_vision_info
 
 from lacebench.metric import compute_metrics_custom
 from lacebench.utils import *
-from .lacebench import ROOT_PATH, CAPTION_PATH
+from lacebench import ROOT_PATH, CAPTION_PATH
 
 logger = logging.getLogger(__name__)
 
