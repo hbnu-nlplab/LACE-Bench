@@ -111,17 +111,39 @@ def load_model(model_name: str, use_vllm=False):
 
 def generate_text(model, processor, inputs, prompt, params):
     """통합 inference 함수"""
-    if USE_VLLM:
-        # vLLM용 inference
-        from vllm import SamplingParams
-        sampling = SamplingParams(max_tokens=params.get("max_new_tokens", 128))
-        results = model.generate(
-            [f"{prompt}\n{data['caption']}" for data in inputs],
-            sampling_params=sampling
-        )
-        return [r.outputs[0].text for r in results]
-    else:
+    # if USE_VLLM:
+    #     # vLLM용 inference
+    #     from vllm import SamplingParams
+    #     sampling = SamplingParams(max_tokens=params.get("max_new_tokens", 128))
+    #     results = model.generate(
+    #         [f"{prompt}\n{data['caption']}" for data in inputs],
+    #         sampling_params=sampling
+    #     )
+    #     return [r.outputs[0].text for r in results]
+    # else:
+    #     return generate_text_from_sample(model, processor, inputs, **params)
+
+    # 1. InternVL 계열
+    if hasattr(model, "chat"):
+        outputs = []
+        for data in inputs:
+            image = data["content"][1]["image"]
+            text = data["content"][1]["text"]
+            out = model.chat(image, text)
+            outputs.append(out)
+        return outputs
+
+    # 2. HuggingFace Vision2Seq 계열 (Qwen, LLaVA, Phi-3, etc.)
+    elif hasattr(processor, "apply_chat_template"):
         return generate_text_from_sample(model, processor, inputs, **params)
+
+    # 3. Idefics / DeepSeek / CogVLM 계열 (processor 있지만 chat 템플릿 다름)
+    else:
+        texts = [data["content"][1]["text"] for data in inputs]
+        images = [data["content"][1]["image"] for data in inputs]
+        model_inputs = processor(text=texts, images=images, return_tensors="pt").to(model.device)
+        generated = model.generate(**model_inputs, max_new_tokens=params.get("max_new_tokens", 128))
+        return processor.batch_decode(generated, skip_special_tokens=True)
 
 
 def generate_text_from_sample(model, processor, samples, max_new_tokens=1024, device="cuda"):
