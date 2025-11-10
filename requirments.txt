@@ -10,5 +10,7 @@ evaluate
 scikit-learn
 spacy
 torchmetrics
+qwen_vl_utils
+vllm
 
 # python3 -m spacy download en_core_web_sm

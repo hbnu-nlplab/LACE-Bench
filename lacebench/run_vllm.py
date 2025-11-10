@@ -4,6 +4,7 @@ from PIL import Image
 import torch
 from transformers import AutoProcessor, AutoModelForVision2Seq, AutoModelForCausalLM
 from peft import PeftModel
+from qwen_vl_utils import process_vision_info
 
 from metric import compute_metrics_custom
 from utils import *
@@ -26,12 +27,12 @@ Focus on delivering accurate, succinct captions based on the visual information.
 
 LOAD_ADAPTER = False
 ADAPTER_PATH = f"./outputs/{MODEL_NAME}_LRGR_bbox/checkpoint-candi-1/"
-USE_VLLM = False # vLLM backend 사용 여부
+USE_VLLM = False 
 BATCH_SIZE = 1
 KCC=False
 
 INCLUDE_BBOX=True
-KNOWLEDGE_EDIT=False # True, ke eval
+KNOWLEDGE_EDIT=False 
 USE_CF_KE=False
 QUAL_ANAL=False
 EACH_BBOX=False
