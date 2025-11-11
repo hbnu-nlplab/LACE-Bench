@@ -287,13 +287,15 @@ def main():
 
 
     # check null candidate
-    new_formatted, new_candidates = [], []
-    for cand, ed in tqdm(zip(candidates, formatted), total=len(formatted)):
+    new_eval_data, new_candidates, new_crop_img_lst = [], [], []
+    for cand, ed, cimg in tqdm(zip(candidates, eval_data, crop_img_lst), total=len(eval_data)):
         if cand != []:
-            new_formatted.append(ed)
+            new_eval_data.append(ed)
             new_candidates.append(cand)
-    formatted = new_formatted
+            new_crop_img_lst.append(cimg)
+    eval_data = new_eval_data
     candidates = new_candidates
+    crop_img_lst = new_crop_img_lst
 
     formatted_batches = [formatted[i:i+BATCH_SIZE] for i in range(0, len(formatted), BATCH_SIZE)]
 
