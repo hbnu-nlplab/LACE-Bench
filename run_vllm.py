@@ -288,7 +288,7 @@ def main():
 
     # check null candidate
     new_eval_data, new_candidates, new_crop_img_lst = [], [], []
-    for cand, ed, cimg in tqdm(zip(candidates, eval_data, crop_img_lst), total=len(eval_data)):
+    for cand, ed, cimg in tqdm(zip(candidates, formatted, crop_img_lst), total=len(formatted)):
         if cand != []:
             new_eval_data.append(ed)
             new_candidates.append(cand)
