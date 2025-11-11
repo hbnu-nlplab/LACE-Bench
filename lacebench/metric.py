@@ -15,7 +15,7 @@ pil_to_tensor = torchvision.transforms.PILToTensor()
 print("done.")
 
 
-def calc_bertscore(decoded_preds, candidates_n, lang):
+def calc_bertscore(decoded_preds, candidates_n, lang, device):
     scores = []
     for pred, refs in zip(decoded_preds, candidates_n):
         # 각 prediction을 n개의 candidate와 비교
@@ -23,6 +23,7 @@ def calc_bertscore(decoded_preds, candidates_n, lang):
             predictions=[pred] * len(refs),
             references=refs,
             lang=lang,
+            device=device,
         )
         # 각 reference별 F1 평균 계산
         f1_mean = mean(bs["f1"])
@@ -68,7 +69,7 @@ def compute_metrics_custom(preds, candidates, images, tokenizer, lang="en"):
         eval_metric[f'bleu-{bleu_n}'] = bleu.compute(predictions=decoded_preds, references=candidates_n, max_order=bleu_n)['bleu']
 
 
-    bs = calc_bertscore(decoded_preds, candidates_n, lang)
+    bs = calc_bertscore(decoded_preds, candidates_n, lang, device=device)
     eval_metric["bertscore_f1"] = float(mean(bs)) 
 
     eval_metric.update({k:float(eval_metric[k]) for k in score_lst})
@@ -86,7 +87,7 @@ def compute_metrics_custom(preds, candidates, images, tokenizer, lang="en"):
     eval_metric.update({k:float(eval_metric[k]) for k in score_lst})
 
     # bertscore
-    bs_all = calc_bertscore(decoded_preds, candidates, lang)
+    bs_all = calc_bertscore(decoded_preds, candidates, lang, device=device)
     eval_metric["bertscore_f1"] = float(mean(bs_all)) 
 
     # clipscore
