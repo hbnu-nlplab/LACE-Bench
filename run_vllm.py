@@ -302,7 +302,12 @@ def main():
     all_gen = []
     for batch in tqdm(formatted_batches, total=len(formatted_batches), desc="Run model"):
         all_gen.extend(generate_text(model, processor, batch, PROMPT, model_params))
-
+    
+    del model
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        torch.cuda.synchronize()
+    
     metric_ret, gen_seq = compute_metrics_custom(all_gen, candidates, crop_img_lst, processor)
     print(metric_ret)
 
