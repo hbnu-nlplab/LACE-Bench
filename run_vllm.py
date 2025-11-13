@@ -6,7 +6,7 @@ from transformers import AutoProcessor, AutoModelForVision2Seq, AutoModelForCaus
 from peft import PeftModel
 from qwen_vl_utils import process_vision_info
 
-from lacebench.metric import compute_metrics_custom
+from lacebench.metric import compute_metrics_custom, compute_acc
 from lacebench.utils import *
 from lacebench import ROOT_PATH, CAPTION_PATH
 
@@ -308,8 +308,12 @@ def main():
         torch.cuda.empty_cache()
         torch.cuda.synchronize()
     
-    metric_ret, gen_seq = compute_metrics_custom(all_gen, candidates, crop_img_lst, processor)
-    print(metric_ret)
+    if KNOWLEDGE_EDIT:
+        acc = compute_acc(all_gen, objs, syn_lst, te_synset, processor)
+        print(f"Knowledge Editing Accuracy: {acc:.4f}")
+    else:
+        metric_ret, gen_seq = compute_metrics_custom(all_gen, candidates, crop_img_lst, processor)
+        print(metric_ret)
 
 if __name__ == "__main__":
     main()

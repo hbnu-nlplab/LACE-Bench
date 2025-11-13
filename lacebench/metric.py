@@ -3,6 +3,8 @@ from statistics import mean
 import evaluate
 from torchmetrics.multimodal.clip_score import CLIPScore
 import torch, torchvision
+from nltk.tokenize import word_tokenize  
+from nltk.tag import pos_tag  
 
 print("LOAD METRIC ...")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -102,3 +104,34 @@ def compute_metrics_custom(preds, candidates, images, tokenizer, lang="en"):
     ret["n=all"] = {k: float(v) for k, v in eval_metric.items() if isinstance(v, (int, float, np.floating))}
 
     return ret, decoded_preds
+
+
+def compute_acc(gen_batch, objs, syn_lst, te_synset, processor):
+    decoded_preds = processor.batch_decode(gen_batch, skip_special_tokens=True, clean_up_tokenization_spaces=False)
+    gen_seq = []
+    for pi, pred in enumerate(decoded_preds):
+        tokens = word_tokenize(pred)
+        tagged = pos_tag(tokens)
+        pred = ' '.join([word for word, pos in tagged if pos.startswith('N')])
+        gen_seq.append(pred)
+
+    acc = 0
+    for pi, pred in enumerate(gen_seq):
+        acc_flag = False
+        if pred == objs[pi]:
+            acc += 1
+            acc_flag = True
+        elif pred in syn_lst:
+            if objs[pi] in te_synset:
+                if pred in te_synset[objs[pi]]:
+                    acc += 0.8
+                    acc_flag = True
+        elif pred == '':
+            continue
+
+        if not acc_flag:
+            bs = bertscore.compute(predictions=[pred], references=[objs[pi]], lang="en", device=device)
+            if bs['f1'][0] < 0.85:
+                acc += bs['f1'][0] #* 0.05
+
+    return acc
